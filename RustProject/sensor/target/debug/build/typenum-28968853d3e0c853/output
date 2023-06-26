@@ -1,0 +1,3 @@
+cargo:rerun-if-changed=build/main.rs
+cargo:rustc-env=TYPENUM_BUILD_CONSTS=/Users/yuanbangjie/Documents/Github/RustProject/sensor/target/debug/build/typenum-28968853d3e0c853/out/consts.rs
+cargo:rustc-env=TYPENUM_BUILD_OP=/Users/yuanbangjie/Documents/Github/RustProject/sensor/target/debug/build/typenum-28968853d3e0c853/out/op.rs
