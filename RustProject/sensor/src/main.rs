@@ -11,6 +11,7 @@ use std::io::{Read, Write};
 use std::collections::HashMap;
 
 use std::sync::{Arc, Mutex};
+use serde_json::Value;
 
 
 //获取某个机器的温湿度
@@ -65,26 +66,32 @@ struct ReturnData {
     body:BodyData,
 }
 
-
 //用来保存 socket
 struct SocketData {
     conn_socket: TcpStream,
-    a: f32,
-    b: f32,
+    temperature: f32,
+    humidity: f32,
 }
 
 
 impl SocketData {
-    fn new(conn_socket: TcpStream, a: f32, b: f32) -> Self {
+    fn new(conn_socket: TcpStream, temperature: f32, humidity: f32) -> Self {
         SocketData {
             conn_socket,
-            a,
-            b,
+            temperature,
+            humidity,
         }
     }
 }
 
-
+enum RequestIdList {
+    GetAllSensorData = 1,
+    GetOneSensorData = 2,
+    GetOneOffsetTemp = 3,
+    GetOneOffsetHum = 4,
+    CalibrationTemp = 5,
+    CalibrationHum = 6 
+}
 
 //处理客户端连接
 fn handle_client(mut conn_socket: TcpStream, conn_sockets_clone: &Arc<Mutex<HashMap<String, SocketData>>>) {
@@ -92,86 +99,51 @@ fn handle_client(mut conn_socket: TcpStream, conn_sockets_clone: &Arc<Mutex<Hash
     //获取到 SN 号码
     let mut buffer = [0; 1024];
     conn_socket.read(&mut buffer).unwrap();
-
-    let mut socket_number = String::from_utf8_lossy(&buffer).trim().to_owned();
-
-    println!("Received data: {}", socket_number);
    
+    let mut socket_number = String::from_utf8_lossy(&buffer).trim_end_matches(char::from(0)).to_owned();
     let mut connections_guard = conn_sockets_clone.lock().unwrap();
     let socket_data = SocketData::new (conn_socket, 0.0, 0.0);
 
-    connections_guard.insert(socket_number.to_string(), socket_data);
-
-
-    // 这里需要接收到客户端的 SN，然后将其设置为 key 存到 map 里
-   
-    // let mut tmp_socket_data = connections_guard.get(&socket_number).unwrap();
-    // let mut stream = tmp_socket_data.conn_socket.try_clone().unwrap();
-    // let mut buffer = [0; 1024];
-    // stream.read(&mut buffer).unwrap();
-    // println!("Received data: {}", String::from_utf8_lossy(&buffer));
-
-    // let response = "Hello from TCP server!";
-    // let response1 = "Hello from TCP server1!";
-    // let response2 = "Hello from TCP server2!";
-    // let response3 = "Hello from TCP server3!";
-    // stream.write(response.as_bytes()).unwrap();
-    // stream.flush().unwrap();
-    // stream.write(response1.as_bytes()).unwrap();
-    // stream.flush().unwrap();
-    // stream.write(response2.as_bytes()).unwrap();
-    // stream.flush().unwrap();
-    // stream.write(response3.as_bytes()).unwrap();
-    // stream.flush().unwrap();
+    connections_guard.insert(socket_number, socket_data);
+    
 }
 
-// 获取某个机器的温湿度
-async fn get_one_sensor_data_fun(post_data: web::Json<OneTemAndHumData>, conn_sockets_clone_web_server: web::Data<Arc<Mutex<HashMap<String, SocketData>>>>) -> HttpResponse {
+// 操作传感器
+async fn operating_sensors(post_data: web::Json<Value>, conn_sockets_clone_web_server: web::Data<Arc<Mutex<HashMap<String, SocketData>>>>) -> HttpResponse {
   
-    println!("{} {}", post_data.SN, post_data.RequestId);
-    
-    // println!("conn_sockets_clone_web_server: {:?}", conn_sockets_clone_web_server);
-    // 或者使用 dbg! 宏
-    // dbg!(&conn_sockets_clone_web_server);
-
-    let sy_number = post_data.SN.clone();
-
-    // print!("{}", sy_number);
-    
-
+    let json_data = post_data.into_inner();
     let mut connections_guard = conn_sockets_clone_web_server.lock().unwrap();
 
-    println!("sy_number: {:?}", sy_number);
-    let mut tmp_socket_data = connections_guard.get(&sy_number).unwrap();
+    if let Some(request_id) = json_data.get("RequestId"){
 
+        if let Some(request_id_i64) = request_id.as_i64() {
+    
+            match request_id_i64 {
+                1 => {
+                    // 处理 GetAllSensorData 的逻辑
+                }
+                2 => {
+                    // 处理 GetOneSensorData 的逻辑
+                }
+                3 => {
 
-    let mut stream = tmp_socket_data.conn_socket.try_clone().unwrap();
+                }
+                _ => {
+                    // 处理未知的请求ID情况
+                }
+            }
 
-    // let mut buffer = [0; 1024];
-    // stream.read(&mut buffer).unwrap();
+        }
 
-    // println!("Received data: {}", String::from_utf8_lossy(&buffer));
+        HttpResponse::Ok().body("Hello world11111111!")
 
-    let response = "Hello from TCP server!";
-    let response1 = "Hello from TCP server1!";
-    let response2 = "Hello from TCP server2!";
-    let response3 = "Hello from TCP server3!";
-    stream.write(response.as_bytes()).unwrap();
-    stream.flush().unwrap();
-    stream.write(response1.as_bytes()).unwrap();
-    stream.flush().unwrap();
-    stream.write(response2.as_bytes()).unwrap();
-    stream.flush().unwrap();
-    stream.write(response3.as_bytes()).unwrap();
-    stream.flush().unwrap();
-    HttpResponse::Ok().body("Hello world11111111!")
+    } else {
+        HttpResponse::Ok().body("Hello world11111111!")
+    }
+
 }
 
-//获取所有机器的温湿度
-async fn get_all_sensor_data_fun(post_data: web::Json<AllTemAndHumData>) -> HttpResponse {
-    println!("{}", post_data.RequestId);
-    HttpResponse::Ok().body("Hello world11111111!")
-}
+
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -181,13 +153,13 @@ async fn main() -> std::io::Result<()> {
     let conn_sockets_server = Arc::clone(&conn_sockets); 
 
     let http_server = HttpServer::new(move|| {
-        let conn_sockets_clone_web_server = Arc::clone(&conn_sockets);
-        
+        let conn_sockets_clone_web_server = Arc::clone(&conn_sockets_server);
+
         App::new()
             .service(web::scope("/api")
                 .data(conn_sockets_clone_web_server)
-                .route("/GetOneSensorData", web::post().to(get_one_sensor_data_fun))
-                .route("/GetAllSensorData", web::post().to(get_all_sensor_data_fun))
+                .route("/OperatingSensors", web::post().to(operating_sensors))
+               
             )
     }).bind("127.0.0.1:8000")?;
 
@@ -200,7 +172,7 @@ async fn main() -> std::io::Result<()> {
     for conn_socket in tcp_listener.incoming() {
 
         let conn_socket = conn_socket?;
-        let conn_sockets_clone = Arc::clone(&conn_sockets_server);
+        let conn_sockets_clone = Arc::clone(&conn_sockets);
 
         thread::spawn(move || {
             //接收到链接之后，处理其内容
