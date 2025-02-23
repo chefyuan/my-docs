@@ -175,6 +175,6 @@ export default hopeTheme({
 },
 
 
-{ custom: true },
+  { custom: true },
 
 );

@@ -1,7 +1,7 @@
 ---
 home: true
 icon: home
-title: 网站首页
+title: 厨子的学习圈
 heroImage: "/images/logo.jpg"
 heroText: 程序厨
 tagline: 相信我，这个网站一定能够对你有所帮助！！！
@@ -10,10 +10,10 @@ description: 程序厨
 
 category: 
     - 程序厨
-    - 程序厨
-    - 程序厨
-    - 程序厨
-    - 程序厨
+    - 算法基地
+    - 面试基地
+    - 秋招
+    - 程序员
 
 excerpt: 程序厨
 
@@ -22,8 +22,8 @@ actions:
     link: base.md
     type: primary
 
-  - text: 抱团取暖
-    link: "https://t.zsxq.com/0fjYIsW9Z"
+  - text: C++ 训练营
+    link: "cppcamp.md"
 
 copyright: false
 
@@ -33,7 +33,7 @@ footer: <a href="https://beian.miit.gov.cn" target="_blank">鲁ICP备2021037188�
 ##
 # 网站由来
 
-哈喽，大家好，我是厨子，普通本科出身，秋招时曾连续通过 30 多场面试，拿下了百度，腾讯，华为，虾皮，B站，商汤，京东，某军工研究所，四大行之一 等 10 余个 offer，基本都为 sp 或者 ssp offer，当然这不是在跟大家炫耀，而是我认为备战秋招和面试是有方法论的，所以在这里，我也将我的秋招经验分享出来，希望能够对大家有一丢丢帮助。
+哈喽，大家好，我是厨子，211 硕，秋招时曾连续通过 30 多场面试，拿下了百度，腾讯，华为，虾皮，B站，商汤，京东，某军工研究所，四大行之一 等 10 余个 offer，基本都为 sp 或者 ssp offer，当然这不是在跟大家炫耀，而是我认为备战秋招和面试是有方法论的，所以在这里，我也将我的秋招经验分享出来，希望能够对大家有一丢丢帮助。
 
 相信很多师弟师妹，在刚开始备战秋招时，会遇到和我一样的问题 
 
